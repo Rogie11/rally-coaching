@@ -1,89 +1,824 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rally ATL — Junior Coach Booking</title>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    /* ── Reset & Variables ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green:   #2ecc71;
+      --green-d: #27ae60;
+      --navy:    #1a2e44;
+      --navy-l:  #243b55;
+      --gold:    #f1c40f;
+      --gray:    #f4f6f8;
+      --text:    #2c3e50;
+      --muted:   #7f8c8d;
+      --white:   #ffffff;
+      --radius:  12px;
+      --shadow:  0 4px 24px rgba(0,0,0,.10);
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray); color: var(--text); }
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/12.13.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/12.13.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/12.13.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/12.13.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/12.13.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/12.13.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/12.13.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/12.13.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/12.13.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/12.13.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    /* ── Top Nav ── */
+    header {
+      background: var(--navy);
+      padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,.25);
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon { width: 36px; height: 36px; background: var(--green); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .logo-text { color: var(--white); font-size: 20px; font-weight: 700; letter-spacing: .5px; }
+    .logo-text span { color: var(--green); }
+    nav { display: flex; gap: 8px; }
+    nav a { color: #ccc; text-decoration: none; padding: 8px 16px; border-radius: 8px;
+      font-size: 14px; transition: all .2s; }
+    nav a:hover, nav a.active { background: rgba(255,255,255,.12); color: var(--white); }
+    .btn-nav { background: var(--green) !important; color: var(--white) !important; font-weight: 600; }
+    .btn-nav:hover { background: var(--green-d) !important; }
+    .btn-nav-outline { border: 1.5px solid rgba(255,255,255,.35) !important; color: var(--white) !important; }
+    .btn-nav-outline:hover { background: rgba(255,255,255,.12) !important; }
 
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
-  </head>
-  <body>this is a test
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-l) 60%, #1e5c3a 100%);
+      color: var(--white); text-align: center; padding: 64px 24px 80px;
+    }
+    .hero h1 { font-size: clamp(28px, 5vw, 48px); font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
+    .hero h1 span { color: var(--green); }
+    .hero p { font-size: 18px; color: #b0c4d8; max-width: 520px; margin: 0 auto 36px; line-height: 1.6; }
+    .hero-stats { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat-num { font-size: 36px; font-weight: 800; color: var(--green); }
+    .stat-label { font-size: 13px; color: #8fa8c0; margin-top: 2px; }
+
+    /* ── Filter Bar ── */
+    .filter-bar {
+      background: var(--white); border-bottom: 1px solid #e0e6ec;
+      padding: 16px 32px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    }
+    .filter-bar span { font-weight: 600; font-size: 14px; color: var(--muted); margin-right: 4px; }
+    .chip { padding: 7px 16px; border-radius: 999px; border: 1.5px solid #dce3ea;
+      background: var(--white); cursor: pointer; font-size: 13px; font-weight: 500;
+      color: var(--text); transition: all .18s; }
+    .chip:hover { border-color: var(--green); color: var(--green); }
+    .chip.active { background: var(--green); border-color: var(--green); color: var(--white); }
+    .search-box { margin-left: auto; display: flex; align-items: center; gap: 8px;
+      border: 1.5px solid #dce3ea; border-radius: 999px; padding: 7px 16px; background: var(--white); }
+    .search-box input { border: none; outline: none; font-size: 14px; width: 180px; }
+
+    /* ── Coach Grid ── */
+    .section { max-width: 1180px; margin: 0 auto; padding: 40px 24px; }
+    .section-title { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+    .coach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+
+    /* ── Coach Card ── */
+    .card {
+      background: var(--white); border-radius: var(--radius); overflow: hidden;
+      box-shadow: var(--shadow); cursor: pointer; transition: transform .2s, box-shadow .2s;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(0,0,0,.14); }
+    .card-banner {
+      height: 8px;
+      background: linear-gradient(90deg, var(--green), var(--gold));
+    }
+    .card-body { padding: 20px; }
+    .card-top { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; }
+    .avatar {
+      width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 700; color: var(--white);
+    }
+    .card-info h3 { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+    .card-info .subtitle { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px;
+      font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
+    }
+    .badge-green { background: #e8f8ef; color: var(--green-d); }
+    .badge-blue  { background: #e8f0ff; color: #3a7bd5; }
+    .badge-gold  { background: #fef9e7; color: #c0931a; }
+    .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .tag { background: var(--gray); padding: 4px 10px; border-radius: 6px; font-size: 12px; color: var(--muted); }
+    .card-meta { display: flex; align-items: center; justify-content: space-between; }
+    .price { font-size: 20px; font-weight: 800; color: var(--navy); }
+    .price small { font-size: 12px; font-weight: 400; color: var(--muted); }
+    .stars { color: var(--gold); font-size: 13px; }
+    .review-count { font-size: 12px; color: var(--muted); margin-left: 4px; }
+    .btn-book {
+      width: 100%; margin-top: 14px; padding: 11px;
+      background: var(--green); color: var(--white); border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: background .18s;
+    }
+    .btn-book:hover { background: var(--green-d); }
+
+    /* ── Modal Overlay ── */
+    .overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      z-index: 200; align-items: center; justify-content: center; padding: 16px;
+    }
+    .overlay.open { display: flex; }
+
+    /* ── Booking Modal ── */
+    .modal {
+      background: var(--white); border-radius: 16px; width: 100%; max-width: 820px;
+      max-height: 92vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,.28);
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+    .modal-header {
+      background: linear-gradient(135deg, var(--navy), var(--navy-l));
+      color: var(--white); padding: 24px 28px; border-radius: 16px 16px 0 0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-coach { display: flex; align-items: center; gap: 16px; }
+    .modal-avatar { width: 54px; height: 54px; border-radius: 50%; border: 3px solid var(--green);
+      display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; }
+    .modal-coach-info h2 { font-size: 20px; font-weight: 700; }
+    .modal-coach-info p { font-size: 13px; color: #8fa8c0; margin-top: 3px; }
+    .btn-close { background: rgba(255,255,255,.15); border: none; color: var(--white);
+      width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 18px;
+      display: flex; align-items: center; justify-content: center; transition: background .18s; }
+    .btn-close:hover { background: rgba(255,255,255,.28); }
+    .modal-body { padding: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    @media (max-width: 600px) { .modal-body { grid-template-columns: 1fr; } }
+
+    /* ── Calendar ── */
+    .panel-title { font-size: 14px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--muted); margin-bottom: 14px; }
+    .calendar-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .cal-month { font-size: 15px; font-weight: 700; }
+    .cal-arrow { background: var(--gray); border: none; width: 30px; height: 30px;
+      border-radius: 8px; cursor: pointer; font-size: 16px; display: flex;
+      align-items: center; justify-content: center; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-day-label { text-align: center; font-size: 11px; font-weight: 600;
+      color: var(--muted); padding: 4px 0; }
+    .cal-day {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; font-size: 13px; cursor: pointer; transition: all .15s;
+    }
+    .cal-day:hover:not(.empty):not(.past) { background: #e8f8ef; color: var(--green-d); }
+    .cal-day.today { font-weight: 700; color: var(--navy); }
+    .cal-day.available { background: #f0fbf5; color: var(--green-d); font-weight: 600; }
+    .cal-day.selected { background: var(--green); color: var(--white); font-weight: 700; }
+    .cal-day.past { color: #ccc; cursor: default; }
+    .cal-day.empty { cursor: default; }
+    .cal-legend { display: flex; gap: 16px; margin-top: 10px; font-size: 11px; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+    /* ── Time Slots ── */
+    .slots-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 4px; }
+    .slot {
+      padding: 9px 10px; border-radius: 8px; border: 1.5px solid #e0e6ec;
+      font-size: 13px; font-weight: 500; cursor: pointer; text-align: center;
+      transition: all .15s; background: var(--white);
+    }
+    .slot:hover:not(.booked) { border-color: var(--green); color: var(--green); }
+    .slot.selected { background: var(--green); border-color: var(--green); color: var(--white); }
+    .slot.booked { background: var(--gray); color: #bbb; cursor: not-allowed; text-decoration: line-through; }
+    .no-date-msg { color: var(--muted); font-size: 13px; padding: 20px 0; text-align: center; }
+
+    /* ── Booking Form ── */
+    .form-section { grid-column: 1 / -1; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 13px; font-weight: 600; color: var(--text); }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 14px; border: 1.5px solid #dce3ea; border-radius: 8px;
+      font-size: 14px; outline: none; transition: border .18s; background: var(--white);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--green);
+    }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+    .form-full { grid-column: 1 / -1; }
+
+    .booking-summary {
+      background: var(--gray); border-radius: 10px; padding: 16px; margin-bottom: 18px;
+      display: flex; gap: 20px; flex-wrap: wrap;
+    }
+    .summary-item { font-size: 13px; }
+    .summary-item .label { color: var(--muted); margin-bottom: 2px; }
+    .summary-item .value { font-weight: 700; font-size: 15px; }
+
+    .btn-submit {
+      width: 100%; padding: 14px; background: var(--green); color: var(--white);
+      border: none; border-radius: 10px; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: background .18s; margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--green-d); }
+    .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+
+    /* ── Confirmation Screen ── */
+    .confirm-screen {
+      display: none; flex-direction: column; align-items: center;
+      padding: 40px 28px; text-align: center;
+    }
+    .confirm-screen.show { display: flex; }
+    .confirm-icon { font-size: 64px; margin-bottom: 16px; animation: pop .4s ease; }
+    @keyframes pop { 0%{ transform:scale(0.5); opacity:0; } 70%{ transform:scale(1.1); } 100%{ transform:scale(1); opacity:1; } }
+    .confirm-screen h2 { font-size: 26px; font-weight: 800; margin-bottom: 8px; color: var(--navy); }
+    .confirm-screen p { color: var(--muted); font-size: 15px; max-width: 380px; line-height: 1.6; }
+    .confirm-details {
+      background: var(--gray); border-radius: 12px; padding: 20px 24px; margin: 20px 0;
+      width: 100%; max-width: 380px; text-align: left;
+    }
+    .confirm-row { display: flex; justify-content: space-between; padding: 6px 0;
+      font-size: 14px; border-bottom: 1px solid #e8edf2; }
+    .confirm-row:last-child { border-bottom: none; }
+    .confirm-row .key { color: var(--muted); }
+    .confirm-row .val { font-weight: 600; }
+    .btn-done { padding: 12px 32px; background: var(--navy); color: var(--white);
+      border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
+      cursor: pointer; margin-top: 8px; }
+
+    /* ── How It Works ── */
+    .how-section { background: var(--white); padding: 60px 24px; }
+    .how-inner { max-width: 880px; margin: 0 auto; text-align: center; }
+    .how-inner h2 { font-size: 28px; font-weight: 800; margin-bottom: 40px; }
+    .how-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; }
+    .step { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .step-num { width: 52px; height: 52px; background: var(--green); color: var(--white);
+      border-radius: 50%; font-size: 22px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center; }
+    .step h3 { font-size: 16px; font-weight: 700; }
+    .step p { font-size: 14px; color: var(--muted); line-height: 1.5; text-align: center; }
+
+    /* ── Footer ── */
+    footer { background: var(--navy); color: #8fa8c0; text-align: center;
+      padding: 24px; font-size: 13px; }
+    footer a { color: var(--green); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<header>
+  <a class="logo" href="#">
+    <div class="logo-icon">🎾</div>
+    <span class="logo-text">Rally<span>ATL</span></span>
+  </a>
+  <nav>
+    <a href="#" class="active">Find a Coach</a>
+    <a href="#">My Bookings</a>
+    <a href="coach-portal.html" class="btn-nav-outline">Coach Login</a>
+    <a href="coach-portal.html" class="btn-nav">I'm a Coach →</a>
+  </nav>
+</header>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <h1>Book a Private Lesson<br>with a <span>Junior Coach</span></h1>
+  <p>Learn tennis from talented young coaches in the Rally ATL community. Flexible scheduling, affordable rates, real results.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Junior Coaches</div></div>
+    <div class="stat"><div class="stat-num">200+</div><div class="stat-label">Lessons Taught</div></div>
+    <div class="stat"><div class="stat-num">4.9★</div><div class="stat-label">Avg. Rating</div></div>
+  </div>
+</section>
+
+<!-- ── Filter Bar ── -->
+<div class="filter-bar">
+  <span>Filter:</span>
+  <div class="chip active" onclick="filterCards(this,'all')">All Coaches</div>
+  <div class="chip" onclick="filterCards(this,'beginner')">Beginner Friendly</div>
+  <div class="chip" onclick="filterCards(this,'advanced')">Advanced</div>
+  <div class="chip" onclick="filterCards(this,'weekend')">Weekend Available</div>
+  <div class="search-box">
+    <span>🔍</span>
+    <input type="text" placeholder="Search coaches…" oninput="searchCards(this.value)" />
+  </div>
+</div>
+
+<!-- ── Coach Grid ── -->
+<div class="section">
+  <div class="section-title">Available Coaches</div>
+  <div id="loadingMsg" style="color:var(--muted);padding:40px 0;font-size:15px">
+    Loading coaches…
+  </div>
+  <div class="coach-grid" id="coachGrid"></div>
+</div>
+
+<!-- ── How It Works ── -->
+<section class="how-section">
+  <div class="how-inner">
+    <h2>How It Works</h2>
+    <div class="how-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Browse Coaches</h3>
+        <p>Find a junior coach that matches your skill level, schedule, and goals.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Pick a Time</h3>
+        <p>Choose an available date and time slot that works for you.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Book & Confirm</h3>
+        <p>Fill in your info and submit. You'll receive an email confirmation.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Hit the Court!</h3>
+        <p>Show up at the scheduled time and enjoy your private lesson.</p>
+      </div>
     </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
+  </div>
+</section>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+<footer>
+  © 2026 Rally ATL &nbsp;·&nbsp; <a href="#">Contact</a> &nbsp;·&nbsp; <a href="#">rallyatl.com</a>
+</footer>
 
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
-        }
+<!-- ── Booking Modal ── -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+
+    <!-- Booking Flow -->
+    <div id="bookingFlow">
+      <div class="modal-header">
+        <div class="modal-coach">
+          <div class="modal-avatar" id="modalAvatar"></div>
+          <div class="modal-coach-info">
+            <h2 id="modalName"></h2>
+            <p id="modalSub"></p>
+          </div>
+        </div>
+        <button class="btn-close" onclick="closeModalBtn()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Calendar -->
+        <div>
+          <div class="panel-title">📅 Select a Date</div>
+          <div class="calendar-nav">
+            <button class="cal-arrow" onclick="changeMonth(-1)">‹</button>
+            <span class="cal-month" id="calMonth"></span>
+            <button class="cal-arrow" onclick="changeMonth(1)">›</button>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="cal-legend">
+            <span><span class="legend-dot" style="background:#e8f8ef"></span>Available</span>
+            <span><span class="legend-dot" style="background:var(--green)"></span>Selected</span>
+            <span><span class="legend-dot" style="background:var(--gray)"></span>Unavailable</span>
+          </div>
+        </div>
+
+        <!-- Time Slots -->
+        <div>
+          <div class="panel-title">🕐 Select a Time</div>
+          <div id="slotsContainer"><p class="no-date-msg">← Please select a date first</p></div>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="form-section">
+          <div class="panel-title">📝 Your Information</div>
+          <div class="booking-summary" id="bookingSummary" style="display:none">
+            <div class="summary-item">
+              <div class="label">Date</div>
+              <div class="value" id="sumDate">—</div>
+            </div>
+            <div class="summary-item">
+              <div class="label">Time</div>
+              <div class="value" id="sumTime">—</div>
+            </div>
+            <div class="summary-item">
+              <div class="label">Duration</div>
+              <div class="value">30 min</div>
+            </div>
+            <div class="summary-item">
+              <div class="label">Rate</div>
+              <div class="value" id="sumRate">—</div>
+            </div>
+          </div>
+          <form class="form-grid" id="bookingForm" onsubmit="submitBooking(event)">
+            <div class="form-group">
+              <label>Student Name *</label>
+              <input type="text" id="fName" placeholder="e.g. Alex Chen" required />
+            </div>
+            <div class="form-group">
+              <label>Parent/Guardian Name *</label>
+              <input type="text" id="fParent" placeholder="e.g. Sarah Chen" required />
+            </div>
+            <div class="form-group">
+              <label>Email Address *</label>
+              <input type="email" id="fEmail" placeholder="your@email.com" required />
+            </div>
+            <div class="form-group">
+              <label>Phone Number *</label>
+              <input type="tel" id="fPhone" placeholder="(404) 555-0100" required />
+            </div>
+            <div class="form-group form-full">
+              <label>Skill Level</label>
+              <select id="fLevel">
+                <option>Complete Beginner (never played)</option>
+                <option>Beginner (played a few times)</option>
+                <option>Intermediate (plays regularly)</option>
+                <option>Advanced (tournament player)</option>
+              </select>
+            </div>
+            <div class="form-group form-full">
+              <label>Notes for your coach (optional)</label>
+              <textarea id="fNotes" placeholder="e.g. Working on backhand, want to improve serve…"></textarea>
+            </div>
+            <div class="form-full">
+              <button type="submit" class="btn-submit" id="btnSubmit">Confirm Booking →</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Screen -->
+    <div class="confirm-screen" id="confirmScreen">
+      <div class="confirm-icon">🎉</div>
+      <h2>Booking Confirmed!</h2>
+      <p>Your lesson has been booked. Check your email for details and court location.</p>
+      <div class="confirm-details" id="confirmDetails"></div>
+      <button class="btn-done" onclick="closeModalBtn()">Done</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   FIREBASE
+═══════════════════════════════════════════ */
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.firestore();
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let COACHES      = [];
+let activeFilter = 'all';
+let searchQuery  = '';
+let currentCoach = null;
+let calYear, calMonth;
+let selectedDate = null;
+let selectedSlot = null;
+
+/* ═══════════════════════════════════════════
+   LOAD COACHES FROM FIRESTORE
+═══════════════════════════════════════════ */
+function parseCoach(data) {
+  return {
+    ...data,
+    availableDays: Object.entries(data.schedule || {})
+      .filter(([, v]) => v.on && v.slots && v.slots.length > 0)
+      .map(([k]) => Number(k))
+  };
+}
+
+const DEFAULT_COACHES = [
+  { id:1, name:"Eric Jiang", age:14, emoji:"EJ", color:"#3a7bd5", level:"Advanced Player",
+    badge:"badge-blue", badgeText:"Advanced", tags:["Advanced Training","Match Strategy","Ages 10–16"], rate:10, rating:5.0, reviews:0, filters:["advanced"],
+    email:"", blockedDates:[], bookings:[],
+    schedule:{"0":{on:false,slots:[]},"1":{on:false,slots:[]},"2":{on:false,slots:[]},"3":{on:false,slots:[]},"4":{on:false,slots:[]},"5":{on:false,slots:[]},"6":{on:false,slots:[]}} },
+  { id:2, name:"Emma Cai",  age:15, emoji:"EC", color:"#e91e8c", level:"Advanced Player",
+    badge:"badge-blue", badgeText:"Advanced", tags:["Advanced Training","Match Strategy","Ages 10–16"], rate:10, rating:5.0, reviews:0, filters:["advanced"],
+    email:"", blockedDates:[], bookings:[],
+    schedule:{"0":{on:false,slots:[]},"1":{on:false,slots:[]},"2":{on:false,slots:[]},"3":{on:false,slots:[]},"4":{on:false,slots:[]},"5":{on:false,slots:[]},"6":{on:false,slots:[]}} },
+  { id:3, name:"Kathy Ma",    age:14, emoji:"KM", color:"#1abc9c", level:"Advanced Player",
+    badge:"badge-blue", badgeText:"Advanced", tags:["Advanced Training","Match Strategy","Ages 10–16"], rate:10, rating:5.0, reviews:0, filters:["advanced"],
+    email:"", blockedDates:[], bookings:[],
+    schedule:{"0":{on:false,slots:[]},"1":{on:false,slots:[]},"2":{on:false,slots:[]},"3":{on:false,slots:[]},"4":{on:false,slots:[]},"5":{on:false,slots:[]},"6":{on:false,slots:[]}} },
+  { id:4, name:"Roger Zheng", age:15, emoji:"RZ", color:"#e67e22", level:"Advanced Player",
+    badge:"badge-blue", badgeText:"Advanced", tags:["Advanced Training","Match Strategy","Ages 10–16"], rate:10, rating:5.0, reviews:0, filters:["advanced"],
+    email:"", blockedDates:[], bookings:[],
+    schedule:{"0":{on:false,slots:[]},"1":{on:false,slots:[]},"2":{on:false,slots:[]},"3":{on:false,slots:[]},"4":{on:false,slots:[]},"5":{on:false,slots:[]},"6":{on:false,slots:[]}} },
+  { id:5, name:"Evan Li",    age:15, emoji:"EL", color:"#9b59b6", level:"Advanced Player",
+    badge:"badge-blue", badgeText:"Advanced", tags:["Advanced Training","Match Strategy","Ages 10–16"], rate:10, rating:5.0, reviews:0, filters:["advanced"],
+    email:"", blockedDates:[], bookings:[],
+    schedule:{"0":{on:false,slots:[]},"1":{on:false,slots:[]},"2":{on:false,slots:[]},"3":{on:false,slots:[]},"4":{on:false,slots:[]},"5":{on:false,slots:[]},"6":{on:false,slots:[]}} }
+];
+
+async function loadCoaches() {
+  try {
+    const snap = await db.collection('coaches').orderBy('id').get();
+    if (snap.empty) throw new Error('empty');
+    COACHES = snap.docs.map(d => parseCoach(d.data()));
+  } catch (err) {
+    // Firebase 未配置或数据库为空时，使用本地默认数据
+    COACHES = DEFAULT_COACHES.map(parseCoach);
+  }
+  document.getElementById('loadingMsg').style.display = 'none';
+  renderCards();
+}
+
+/* ═══════════════════════════════════════════
+   RENDER CARDS
+═══════════════════════════════════════════ */
+function renderCards() {
+  const grid = document.getElementById('coachGrid');
+  const visible = COACHES.filter(c => {
+    const matchFilter = activeFilter === 'all' || c.filters.includes(activeFilter);
+    const matchSearch = c.name.toLowerCase().includes(searchQuery) || c.tags.some(t => t.toLowerCase().includes(searchQuery));
+    return matchFilter && matchSearch;
+  });
+
+  if (visible.length === 0) {
+    grid.innerHTML = '<p style="color:var(--muted);padding:20px 0">No coaches match your filter.</p>';
+    return;
+  }
+
+  grid.innerHTML = visible.map(c => `
+    <div class="card" data-id="${c.id}" onclick="openModal(${c.id})">
+      <div class="card-banner"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="avatar" style="background:${c.color}">${c.emoji}</div>
+          <div class="card-info">
+            <h3>${c.name}</h3>
+            <div class="subtitle">Age ${c.age} &nbsp;·&nbsp; ${c.level}</div>
+            <span class="badge ${c.badge}">${c.badgeText}</span>
+          </div>
+        </div>
+        <div class="card-tags">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+        <div class="card-meta">
+          <div>
+            <span class="stars">${'★'.repeat(Math.floor(c.rating))}</span>
+            <span class="review-count">${c.rating} (${c.reviews} reviews)</span>
+          </div>
+          <div class="price">$${c.rate}<small>/30min</small></div>
+        </div>
+        <button class="btn-book">Book a Lesson</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterCards(el, f) {
+  activeFilter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderCards();
+}
+
+function searchCards(q) {
+  searchQuery = q.toLowerCase();
+  renderCards();
+}
+
+/* ═══════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════ */
+function openModal(id) {
+  currentCoach = COACHES.find(c => c.id === id);
+  selectedDate = null;
+  selectedSlot = null;
+
+  document.getElementById('modalAvatar').textContent = currentCoach.emoji;
+  document.getElementById('modalAvatar').style.background = currentCoach.color;
+  document.getElementById('modalName').textContent = currentCoach.name;
+  document.getElementById('modalSub').textContent = `Age ${currentCoach.age} · ${currentCoach.level} · $${currentCoach.rate}/30min`;
+
+  const now = new Date();
+  calYear  = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCalendar();
+  document.getElementById('slotsContainer').innerHTML = '<p class="no-date-msg">← Please select a date first</p>';
+  document.getElementById('bookingSummary').style.display = 'none';
+  document.getElementById('bookingFlow').style.display = 'block';
+  document.getElementById('confirmScreen').classList.remove('show');
+  document.getElementById('bookingForm').reset();
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('overlay')) closeModalBtn();
+}
+function closeModalBtn() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════
+   CALENDAR
+═══════════════════════════════════════════ */
+const MONTHS = ["January","February","March","April","May","June",
+                "July","August","September","October","November","December"];
+const DAYS   = ["Su","Mo","Tu","We","Th","Fr","Sa"];
+
+function changeMonth(d) {
+  calMonth += d;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  selectedDate = null;
+  selectedSlot = null;
+  document.getElementById('slotsContainer').innerHTML = '<p class="no-date-msg">← Please select a date first</p>';
+  document.getElementById('bookingSummary').style.display = 'none';
+  renderCalendar();
+}
+
+function isBlocked(dt) {
+  const key = dt.toISOString().slice(0, 10);
+  return (currentCoach.blockedDates || []).some(b => b.date === key);
+}
+
+function renderCalendar() {
+  document.getElementById('calMonth').textContent = `${MONTHS[calMonth]} ${calYear}`;
+  const grid = document.getElementById('calGrid');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+
+  let html = DAYS.map(d => `<div class="cal-day-label">${d}</div>`).join('');
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt = new Date(calYear, calMonth, d);
+    const dow = dt.getDay();
+    const isPast    = dt < today;
+    const isBlk     = !isPast && isBlocked(dt);
+    const hasSlots  = currentCoach.schedule[dow]?.on && (currentCoach.schedule[dow]?.slots?.length > 0);
+    const isAvail   = hasSlots && !isPast && !isBlk;
+    const isSel     = selectedDate && dt.toDateString() === selectedDate.toDateString();
+    const isToday   = dt.toDateString() === today.toDateString();
+    let cls = 'cal-day';
+    if (isPast || isBlk) cls += ' past';
+    else if (isSel)  cls += ' selected';
+    else if (isAvail) cls += ' available';
+    if (isToday && !isSel) cls += ' today';
+    const click = isAvail ? `onclick="selectDate(${calYear},${calMonth},${d})"` : '';
+    const title = isBlk ? 'title="Coach unavailable this day"' : '';
+    html += `<div class="${cls}" ${click} ${title}>${d}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function selectDate(y, m, d) {
+  selectedDate = new Date(y, m, d);
+  selectedSlot = null;
+  renderCalendar();
+  renderSlots();
+  updateSummary();
+}
+
+/* ═══════════════════════════════════════════
+   SLOTS
+═══════════════════════════════════════════ */
+function renderSlots() {
+  if (!selectedDate) return;
+  const dow = selectedDate.getDay();
+  const allSlots = currentCoach.schedule[dow]?.slots || [];
+  const dateKey  = selectedDate.toDateString();
+  const bookedForDay = (currentCoach.bookings || []).filter(b => b.date === dateKey).map(b => b.slot);
+
+  if (allSlots.length === 0) {
+    document.getElementById('slotsContainer').innerHTML =
+      '<p class="no-date-msg">No available slots on this day.</p>';
+    return;
+  }
+
+  const html = allSlots.map(s => {
+    const isBooked = bookedForDay.includes(s);
+    const isSel    = selectedSlot === s;
+    let cls = 'slot';
+    if (isBooked) cls += ' booked';
+    else if (isSel) cls += ' selected';
+    const click = isBooked ? '' : `onclick="selectSlot('${s}')"`;
+    return `<div class="${cls}" ${click}>${s}${isBooked ? '<br><small>Booked</small>' : ''}</div>`;
+  }).join('');
+
+  document.getElementById('slotsContainer').innerHTML = `<div class="slots-grid">${html}</div>`;
+}
+
+function selectSlot(slot) {
+  selectedSlot = slot;
+  renderSlots();
+  updateSummary();
+}
+
+/* ═══════════════════════════════════════════
+   SUMMARY
+═══════════════════════════════════════════ */
+function updateSummary() {
+  if (!selectedDate && !selectedSlot) return;
+  const sumEl = document.getElementById('bookingSummary');
+  sumEl.style.display = 'flex';
+  if (selectedDate) {
+    document.getElementById('sumDate').textContent =
+      selectedDate.toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric'});
+  }
+  document.getElementById('sumTime').textContent = selectedSlot || '—';
+  document.getElementById('sumRate').textContent  = `$${currentCoach.rate}`;
+}
+
+/* ═══════════════════════════════════════════
+   EMAILJS CONFIG — replace with your actual keys
+═══════════════════════════════════════════ */
+const EMAILJS_PUBLIC_KEY      = 'YOUR_PUBLIC_KEY';
+const EMAILJS_SERVICE_ID      = 'YOUR_SERVICE_ID';
+const EMAILJS_TPL_STUDENT     = 'YOUR_STUDENT_TEMPLATE_ID';  // booking_student
+const EMAILJS_TPL_COACH       = 'YOUR_COACH_TEMPLATE_ID';    // booking_coach
+
+emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+/* ═══════════════════════════════════════════
+   SUBMIT
+═══════════════════════════════════════════ */
+async function submitBooking(e) {
+  e.preventDefault();
+  if (!selectedDate || !selectedSlot) {
+    alert('Please select a date and time slot before confirming.');
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  const name    = document.getElementById('fName').value;
+  const parent  = document.getElementById('fParent').value;
+  const email   = document.getElementById('fEmail').value;
+  const phone   = document.getElementById('fPhone').value;
+  const level   = document.getElementById('fLevel').value;
+  const notes   = document.getElementById('fNotes').value || 'None';
+  const dateKey = selectedDate.toDateString();
+  const dateStr = selectedDate.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // save booking to Firestore
+  const newBooking = { student:name, parent, email, phone, level, notes, date:dateKey, slot:selectedSlot,
+                       createdAt: new Date().toISOString() };
+  try {
+    await db.collection('coaches').doc(String(currentCoach.id)).update({
+      bookings: firebase.firestore.FieldValue.arrayUnion(newBooking)
+    });
+    // keep local copy in sync so the slot shows as booked immediately
+    if (!currentCoach.bookings) currentCoach.bookings = [];
+    currentCoach.bookings.push(newBooking);
+  } catch (err) {
+    console.error('Failed to save booking:', err);
+  }
+
+  const shared = {
+    coach_name:  currentCoach.name,
+    coach_age:   currentCoach.age,
+    coach_level: currentCoach.level,
+    rate:        currentCoach.rate,
+    student_name: name,
+    parent_name:  parent,
+    student_email: email,
+    phone,
+    level,
+    notes,
+    date:  dateStr,
+    time:  selectedSlot,
+  };
+
+  try {
+    // email to student/parent
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TPL_STUDENT, {
+      ...shared,
+      to_email: email,
+      to_name:  parent,
+    });
+
+    // email to coach (only if they've saved an email in the portal)
+    if (currentCoach.email) {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TPL_COACH, {
+        ...shared,
+        to_email: currentCoach.email,
+        to_name:  currentCoach.name,
       });
-    </script>
-  </body>
+    }
+  } catch (err) {
+    console.warn('Email send failed:', err);
+    // booking is still saved — don't block the confirmation screen
+  }
+
+  document.getElementById('confirmDetails').innerHTML = `
+    <div class="confirm-row"><span class="key">Coach</span><span class="val">${currentCoach.name}</span></div>
+    <div class="confirm-row"><span class="key">Student</span><span class="val">${name}</span></div>
+    <div class="confirm-row"><span class="key">Date</span><span class="val">${dateStr}</span></div>
+    <div class="confirm-row"><span class="key">Time</span><span class="val">${selectedSlot}</span></div>
+    <div class="confirm-row"><span class="key">Duration</span><span class="val">30 min</span></div>
+    <div class="confirm-row"><span class="key">Rate</span><span class="val">$${currentCoach.rate}</span></div>
+    <div class="confirm-row"><span class="key">Confirmation sent to</span><span class="val">${email}</span></div>
+  `;
+
+  btn.disabled = false;
+  btn.textContent = 'Confirm Booking →';
+  document.getElementById('bookingFlow').style.display = 'none';
+  document.getElementById('confirmScreen').classList.add('show');
+}
+
+/* ── Init ── */
+loadCoaches();
+</script>
+</body>
 </html>
