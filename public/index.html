@@ -35,18 +35,18 @@
 
 <!-- ── Filter Bar ── -->
 <div class="filter-bar">
-  <span>Filter:</span>
-  <div class="chip active" onclick="filterCards(this,'all')">All Coaches</div>
-  <div class="chip" onclick="filterCards(this,'beginner')">Beginner Friendly</div>
-  <div class="chip" onclick="filterCards(this,'advanced')">Advanced</div>
-  <div class="chip" onclick="filterCards(this,'weekend')">Weekend Available</div>
-   <div class="search-box">
+   <button class="chip view-toggle" id="viewToggleBtn" type="button" onclick="toggleView()">Table View</button>
+<div class="search-box">
     <span>🔍</span>
     <input type="text" id="coachSearch" placeholder="Search coach name" oninput="searchCards(this.value)" />
     <button class="search-clear" type="button" onclick="clearSearch()" aria-label="Clear search">✕</button>
+  </div><span>Filter:</span>
+  <div class="chip active" onclick="filterCards(this,'all')">All Coaches</div>
+  <div class="chip" onclick="filterCards(this,'beginner')">Beginner</div>
+  <div class="chip" onclick="filterCards(this,'advanced')">Advanced</div>
+  <div class="chip" onclick="filterCards(this,'weekend')">Weekend</div>
+   
   </div>
-  <button class="chip view-toggle" id="viewToggleBtn" type="button" onclick="toggleView()">Table View</button>
- </div>
 
 <!-- ── Coach Views ── -->
 <div class="section">
@@ -269,7 +269,7 @@ function renderCards() {
           </div>
           <button type="button" class="btn-profile" onclick="event.stopPropagation(); openProfile(${c.id})">Show Profile</button>
           
-        </div><button class="btn-book">Book a Lesson</button>
+        </div><button class="btn-book" onclick="event.stopPropagation(); openModal(${c.id})">Book a Lesson</button>
         <div class="card-tags">${c.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
       </div>
     </div>
