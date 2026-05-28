@@ -73,9 +73,9 @@
     /* ── Coach Card ── */
     .card {
       background: var(--white); border-radius: var(--radius); overflow: hidden;
-      box-shadow: var(--shadow); cursor: pointer; transition: transform .2s, box-shadow .2s;
+      box-shadow: var(--shadow); cursor: pointer; transition: background-color .2s ease;
     }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(0,0,0,.14); }
+    .card:hover { background: #f4fbf7; }
     .card-banner {
       height: 8px;
       background: linear-gradient(90deg, var(--green), var(--gold));
@@ -112,6 +112,17 @@
       font-size: 15px; font-weight: 600; cursor: pointer; transition: background .18s;
     }
     .btn-book:hover { background: var(--green-d); }
+    .btn-profile,
+    .table-profile-btn {
+      transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease;
+    }
+    .btn-profile:hover,
+    .table-profile-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(31, 111, 68, 0.18);
+      background: #dff0e5;
+      border-color: #8fd0a8;
+    }
 
     /* ── Modal Overlay ── */
     .overlay {
