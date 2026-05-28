@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rally ATL — Junior Coach Booking</title>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script src="firebase-config.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <link rel="stylesheet" href="compact.css">
+  <link rel="stylesheet" href="assets/css/compact.css">
 </head>
 <body>
 
@@ -254,7 +254,7 @@ function renderCards() {
   }
 
   coachGridEl.innerHTML = visible.map(c => `
-    <div class="card" data-id="${c.id}" onclick="openModal(${c.id})">
+    <div class="card" data-id="${c.id}">
       <div class="card-banner"></div>
       <div class="card-body">
         <div class="card-top">
@@ -262,13 +262,14 @@ function renderCards() {
           <div class="card-info">
             <div class="card-name-row">
               <h3>${c.name}</h3>
-              <button type="button" class="btn-profile" onclick="event.stopPropagation(); openProfile(${c.id})">Show Profile</button>
+              
             </div>
             <div class="subtitle">Age ${c.age} &nbsp;·&nbsp; ${c.level} &nbsp;·&nbsp; ${c.gender} &nbsp;·&nbsp; ${c.location}</div>
             <span class="badge ${c.badge}">${c.badgeText}</span>
           </div>
-          <button class="btn-book">Book a Lesson</button>
-        </div>
+          <button type="button" class="btn-profile" onclick="event.stopPropagation(); openProfile(${c.id})">Show Profile</button>
+          
+        </div><button class="btn-book">Book a Lesson</button>
         <div class="card-tags">${c.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
       </div>
     </div>
@@ -354,7 +355,7 @@ function openProfile(id) {
   document.getElementById('profileName').textContent = currentCoach.name;
   document.getElementById('profileSub').textContent = `Age ${currentCoach.age} · ${currentCoach.level} · ${currentCoach.gender} · ${currentCoach.location}`;
 
-  document.getElementById('profileFrame').src = 'http://rallyatl.com/coach/RallyRoger.html';
+  document.getElementById('profileFrame').src = 'roger.html';
   document.getElementById('bookingFlow').style.display = 'none';
   document.getElementById('profileFlow').style.display = 'block';
   document.getElementById('confirmScreen').classList.remove('show');
