@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firestore Connection Tester & Manager</title>
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: rgba(22, 27, 34, 0.8);
+      --border: #30363d;
+      --text: #c9d1d9;
+      --accent: #58a6ff;
+      --success: #2ea44f;
+      --error: #f85149;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px; /* Expanded display area width */
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+    }
+    h1 {
+      font-size: 24px;
+      margin-top: 0;
+      color: #fff;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .status-badge {
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+      background: #21262d;
+      color: #8b949e;
+      border: 1px solid var(--border);
+    }
+    .status-badge.connecting {
+      color: var(--accent);
+      border-color: var(--accent);
+      animation: pulse 1.5s infinite;
+    }
+    .status-badge.success {
+      color: var(--success);
+      border-color: var(--success);
+    }
+    .status-badge.error {
+      color: var(--error);
+      border-color: var(--error);
+    }
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .info-card {
+      background: #161b22;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .info-label {
+      font-size: 12px;
+      color: #8b949e;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .info-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+    
+    /* Responsive Dashboard Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 2fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 900px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .console {
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 250px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+    }
+    .console-log { color: #8b949e; }
+    .console-success { color: var(--success); }
+    .console-error { color: var(--error); }
+    
+    .btn-action {
+      background-color: #21262d;
+      color: #c9d1d9;
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.2s;
+      display: inline-block;
+      text-align: center;
+      font-family: inherit;
+    }
+    .btn-action:hover {
+      background-color: #30363d;
+      color: #fff;
+    }
+    
+    /* Table Styling */
+    .table-container {
+      background: #161b22;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      height: fit-content;
+    }
+    table.coaches-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      text-align: left;
+    }
+    table.coaches-table th {
+      background-color: #21262d;
+      color: #8b949e;
+      font-weight: 600;
+      padding: 12px 16px;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    table.coaches-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      color: #c9d1d9;
+    }
+    table.coaches-table tr:last-child td {
+      border-bottom: none;
+    }
+    table.coaches-table tbody tr:hover {
+      background-color: #1f242c;
+    }
+    .btn-edit-inline {
+      border: 1px solid var(--border);
+      background: #21262d;
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn-edit-inline:hover {
+      background: #30363d;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>
+      Firestore Connection Manager
+      <span class="status-badge connecting" id="status">Connecting...</span>
+    </h1>
+    
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-label">Project ID</div>
+        <div class="info-value" id="projId">-</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Auth Domain</div>
+        <div class="info-value" id="authDom">-</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Total Coaches in DB</div>
+        <div class="info-value" id="colSize">0</div>
+      </div>
+    </div>
+
+    <!-- Main Dashboard Grid Layout -->
+    <div class="dashboard-grid">
+      
+      <!-- Sidebar Panel: Connection Logs & Editor Forms -->
+      <div class="sidebar">
+        
+        <div class="info-label" style="margin-bottom: 6px;">📜 Connection Logs</div>
+        <div class="console" id="console">Initializing Firebase...<br></div>
+
+        <!-- Edit Coach Section -->
+        <div class="info-card" style="margin-bottom: 20px; background: #161b22; border: 1px solid var(--border);">
+          <div class="info-label" style="margin-bottom: 12px; font-weight: 700; color: #fff; font-size: 14px;">📝 Edit Coach in Firestore</div>
+          
+          <div style="margin-bottom: 12px;">
+            <label style="font-size: 11px; color: #8b949e; display:block; margin-bottom: 4px;">Choose Coach to Edit</label>
+            <select id="editCoachSelect" onchange="onEditCoachSelect(this.value)" style="width:100%; padding: 8px; background:#010409; border: 1px solid var(--border); color:#fff; border-radius:6px; font-family:inherit;">
+              <option value="">-- Select Coach --</option>
+            </select>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 16px;">
+            <div>
+              <label style="font-size: 11px; color: #8b949e; display:block; margin-bottom: 4px;">Name</label>
+              <input type="text" id="editName" placeholder="Coach Name" style="width:100%; padding: 8px; background:#010409; border: 1px solid var(--border); color:#fff; border-radius:6px; font-family:inherit;" />
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #8b949e; display:block; margin-bottom: 4px;">Location</label>
+              <input type="text" id="editLocation" placeholder="Location" style="width:100%; padding: 8px; background:#010409; border: 1px solid var(--border); color:#fff; border-radius:6px; font-family:inherit;" />
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #8b949e; display:block; margin-bottom: 4px;">Level</label>
+              <input type="text" id="editLevel" placeholder="e.g. Advanced Player" style="width:100%; padding: 8px; background:#010409; border: 1px solid var(--border); color:#fff; border-radius:6px; font-family:inherit;" />
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #8b949e; display:block; margin-bottom: 4px;">Rate per 30 min ($)</label>
+              <input type="number" id="editRate" placeholder="Rate" style="width:100%; padding: 8px; background:#010409; border: 1px solid var(--border); color:#fff; border-radius:6px; font-family:inherit;" />
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <button class="btn-action" style="background-color: var(--accent); color: #fff; border-color: var(--accent); width:100%;" id="btnUpdateCoach" onclick="updateCoach()" disabled>Update Coach</button>
+            <span id="updateStatus" style="font-size: 13px; font-weight: 600; width:100%; text-align:center; margin-top: 4px;"></span>
+          </div>
+        </div>
+
+        <!-- Create Coach Section -->
+        <div class="info-card" style="background: #161b22; border: 1px solid var(--border);">
+          <div class="info-label" style="margin-bottom: 12px; font-weight: 700; color: #fff; font-size: 14px;">➕ Create New Coach in Firestore</div>
+          
+          <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 16px;">
+            <div>
+              <label style="font-size: 11px; color: #8b949e; display:block; margin-bottom: 4px;">Coach ID (Unique Integer)</label>
+              <input type="number" id="cId" value="30" style="width:100%; padding: 8px; background:#010409; border: 1px solid var(--border); color:#fff; border-radius:6px; font-family:inherit;" />
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #8b949e; display:block; margin-bottom: 4px;">Name</label>
+              <input type="text" id="cName" value="Sophia Martinez" style="width:100%; padding: 8px; background:#010409; border: 1px solid var(--border); color:#fff; border-radius:6px; font-family:inherit;" />
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #8b949e; display:block; margin-bottom: 4px;">Location</label>
+              <input type="text" id="cLocation" value="Buckhead, Atlanta" style="width:100%; padding: 8px; background:#010409; border: 1px solid var(--border); color:#fff; border-radius:6px; font-family:inherit;" />
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #8b949e; display:block; margin-bottom: 4px;">Rate per 30 min ($)</label>
+              <input type="number" id="cRate" value="15" style="width:100%; padding: 8px; background:#010409; border: 1px solid var(--border); color:#fff; border-radius:6px; font-family:inherit;" />
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <button class="btn-action" style="background-color: var(--success); color: #fff; border-color: var(--success); width:100%;" onclick="createCoach()">Create Coach</button>
+            <span id="createStatus" style="font-size: 13px; font-weight: 600; width:100%; text-align:center; margin-top: 4px;"></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Main Display Area: Coaches Table -->
+      <div class="main-display">
+        <div class="info-label" style="margin-bottom: 6px;">👥 Coaches Database Table</div>
+        <div class="table-container">
+          <table class="coaches-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Location</th>
+                <th>Level</th>
+                <th>Rate/30m</th>
+                <th style="text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="coachesTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: #8b949e; padding: 40px 0;">Connecting to database...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer Controls -->
+    <div style="display:flex; justify-content: space-between; align-items:center; border-top: 1px solid var(--border); padding-top: 20px;">
+      <button class="btn-action" onclick="fetchData()">Re-Fetch Data</button>
+      <a href="index.html" class="btn-action" style="text-decoration:none;">Back to Booking App</a>
+    </div>
+  </div>
+
+  <script>
+    const consoleEl = document.getElementById('console');
+    const statusEl = document.getElementById('status');
+    const coachesTableBody = document.getElementById('coachesTableBody');
+    const editCoachSelect = document.getElementById('editCoachSelect');
+    
+    let loadedCoaches = [];
+
+    function log(msg, type = 'log') {
+      const span = document.createElement('span');
+      span.className = `console-${type}`;
+      span.innerHTML = msg + '<br>';
+      consoleEl.appendChild(span);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    try {
+      document.getElementById('projId').textContent = FIREBASE_CONFIG.projectId;
+      document.getElementById('authDom').textContent = FIREBASE_CONFIG.authDomain;
+
+      log("Firebase config loaded successfully.");
+      firebase.initializeApp(FIREBASE_CONFIG);
+      log("Firebase app initialized.", "success");
+      const db = firebase.firestore();
+      log("Firestore compatibility layer ready.", "success");
+      
+      fetchData();
+    } catch(e) {
+      log("Initialization error: " + e.message, "error");
+      statusEl.className = "status-badge error";
+      statusEl.textContent = "Error";
+    }
+
+    async function fetchData() {
+      statusEl.className = "status-badge connecting";
+      statusEl.textContent = "Fetching...";
+      coachesTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #8b949e; padding: 40px 0;">Fetching records...</td></tr>';
+      
+      // Reset dropdown values
+      editCoachSelect.innerHTML = '<option value="">-- Select Coach --</option>';
+      resetEditForm();
+
+      log("Querying 'coaches' collection...");
+      
+      try {
+        const db = firebase.firestore();
+        const snap = await db.collection('coaches').orderBy('id').get();
+        
+        if (snap.empty) {
+          log("Warning: 'coaches' collection is empty.", "error");
+          statusEl.className = "status-badge success";
+          statusEl.textContent = "Empty";
+          document.getElementById('colSize').textContent = "0";
+          coachesTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #8b949e; padding: 40px 0;">No coaches found in Firestore.</td></tr>';
+          return;
+        }
+
+        log(`Success! Fetched ${snap.size} documents from Firestore.`, "success");
+        statusEl.className = "status-badge success";
+        statusEl.textContent = "Connected";
+        document.getElementById('colSize').textContent = snap.size;
+
+        loadedCoaches = [];
+        coachesTableBody.innerHTML = '';
+
+        snap.forEach(doc => {
+          const data = doc.data();
+          loadedCoaches.push(data);
+          log(`Document ID: ${doc.id} | Name: ${data.name}`);
+          
+          // Append select option
+          const option = document.createElement('option');
+          option.value = data.id;
+          option.textContent = `${data.name} (ID: ${data.id})`;
+          editCoachSelect.appendChild(option);
+
+          // Append table row
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${data.id}</strong></td>
+            <td style="color:#fff; font-weight:600;">${data.name || 'Unnamed'}</td>
+            <td>${data.location || 'N/A'}</td>
+            <td><span style="font-size:13px; color:#8b949e">${data.level || 'Player'}</span></td>
+            <td>$${data.rate || 0}</td>
+            <td style="text-align: center;">
+              <button class="btn-edit-inline" onclick="selectCoachForEdit(${data.id})">Edit</button>
+            </td>
+          `;
+          coachesTableBody.appendChild(tr);
+        });
+
+      } catch(err) {
+        log("Fetch failed: " + err.message, "error");
+        statusEl.className = "status-badge error";
+        statusEl.textContent = "Query Failed";
+        coachesTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--error); padding: 40px 0;">Fetch failed: ${err.message}</td></tr>`;
+      }
+    }
+
+    function selectCoachForEdit(id) {
+      editCoachSelect.value = id;
+      onEditCoachSelect(id);
+      editCoachSelect.focus();
+      log(`Selected coach ID ${id} for editing.`);
+    }
+
+    function resetEditForm() {
+      document.getElementById('editName').value = '';
+      document.getElementById('editLocation').value = '';
+      document.getElementById('editLevel').value = '';
+      document.getElementById('editRate').value = '';
+      document.getElementById('btnUpdateCoach').disabled = true;
+      document.getElementById('updateStatus').textContent = '';
+    }
+
+    function onEditCoachSelect(idStr) {
+      if (!idStr) {
+        resetEditForm();
+        return;
+      }
+      const id = parseInt(idStr, 10);
+      const coach = loadedCoaches.find(c => c.id === id);
+      if (!coach) {
+        resetEditForm();
+        return;
+      }
+      document.getElementById('editName').value = coach.name || '';
+      document.getElementById('editLocation').value = coach.location || '';
+      document.getElementById('editLevel').value = coach.level || '';
+      document.getElementById('editRate').value = coach.rate || 0;
+      document.getElementById('btnUpdateCoach').disabled = false;
+      document.getElementById('updateStatus').textContent = '';
+    }
+
+    async function updateCoach() {
+      const updateStatusEl = document.getElementById('updateStatus');
+      updateStatusEl.style.color = 'var(--accent)';
+      updateStatusEl.textContent = 'Updating...';
+      
+      const id = parseInt(editCoachSelect.value, 10);
+      const name = document.getElementById('editName').value;
+      const location = document.getElementById('editLocation').value;
+      const level = document.getElementById('editLevel').value;
+      const rate = parseInt(document.getElementById('editRate').value, 10);
+      
+      if (isNaN(id) || !name || !location || isNaN(rate)) {
+        updateStatusEl.style.color = 'var(--error)';
+        updateStatusEl.textContent = 'Invalid input fields';
+        return;
+      }
+      
+      log(`Attempting to update coach document '${name}' with ID '${id}' in Firestore...`);
+      
+      try {
+        const db = firebase.firestore();
+        await db.collection('coaches').doc(String(id)).update({
+          name: name,
+          location: location,
+          level: level,
+          rate: rate
+        });
+        
+        log(`Success! Coach '${name}' updated in Firestore.`, "success");
+        updateStatusEl.style.color = 'var(--success)';
+        updateStatusEl.textContent = `Updated successfully!`;
+        
+        // Refresh table list
+        fetchData();
+      } catch(err) {
+        log(`Update coach failed: ${err.message}`, "error");
+        updateStatusEl.style.color = 'var(--error)';
+        updateStatusEl.textContent = 'Update failed';
+      }
+    }
+
+    async function createCoach() {
+      const createStatusEl = document.getElementById('createStatus');
+      createStatusEl.style.color = 'var(--accent)';
+      createStatusEl.textContent = 'Creating...';
+      
+      const id = parseInt(document.getElementById('cId').value, 10);
+      const name = document.getElementById('cName').value;
+      const location = document.getElementById('cLocation').value;
+      const rate = parseInt(document.getElementById('cRate').value, 10);
+      
+      if (isNaN(id) || !name || !location || isNaN(rate)) {
+        createStatusEl.style.color = 'var(--error)';
+        createStatusEl.textContent = 'Invalid input fields';
+        return;
+      }
+      
+      const newCoach = {
+        id: id,
+        name: name,
+        age: 16,
+        gender: "Female",
+        location: location,
+        emoji: name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+        color: "#e67e22",
+        level: "Advanced Player",
+        badge: "badge-green",
+        badgeText: "Advanced",
+        tags: ["Beginner Specialist", "Footwork Drills", "Ages 6–12"],
+        rate: rate,
+        rating: 5.0,
+        reviews: 0,
+        filters: ["advanced", "weekend"],
+        email: name.toLowerCase().replace(' ', '') + "@example.com",
+        blockedDates: [],
+        bookings: [],
+        schedule: {
+          "0": { on: true, slots: ["1:00 PM", "2:00 PM", "3:00 PM"] },
+          "1": { on: false, slots: [] },
+          "2": { on: false, slots: [] },
+          "3": { on: false, slots: [] },
+          "4": { on: false, slots: [] },
+          "5": { on: false, slots: [] },
+          "6": { on: true, slots: ["9:00 AM", "10:00 AM", "11:00 AM"] }
+        }
+      };
+      
+      log(`Attempting to write coach document '${name}' with ID '${id}' to 'coaches' collection...`);
+      
+      try {
+        const db = firebase.firestore();
+        await db.collection('coaches').doc(String(id)).set(newCoach);
+        
+        log(`Success! Coach '${name}' created in Firestore.`, "success");
+        createStatusEl.style.color = 'var(--success)';
+        createStatusEl.textContent = `Success!`;
+        
+        // Refresh list
+        fetchData();
+      } catch(err) {
+        log(`Create coach failed: ${err.message}`, "error");
+        createStatusEl.style.color = 'var(--error)';
+        createStatusEl.textContent = 'Failed';
+      }
+    }
+  </script>
+</body>
+</html>
