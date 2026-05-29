@@ -109,20 +109,10 @@
       </div>
 
       <div class="modal-body">
-        <!-- Calendar -->
-        <div>
+        <!-- Date Selector -->
+        <div class="form-group">
           <div class="panel-title">📅 Select a Date</div>
-          <div class="calendar-nav">
-            <button class="cal-arrow" onclick="changeMonth(-1)">‹</button>
-            <span class="cal-month" id="calMonth"></span>
-            <button class="cal-arrow" onclick="changeMonth(1)">›</button>
-          </div>
-          <div class="cal-grid" id="calGrid"></div>
-          <div class="cal-legend">
-            <span><span class="legend-dot" style="background:#e8f8ef"></span>Available</span>
-            <span><span class="legend-dot" style="background:var(--green)"></span>Selected</span>
-            <span><span class="legend-dot" style="background:var(--gray)"></span>Unavailable</span>
-          </div>
+          <input type="date" id="bookingDate" onchange="onDateInputChange(this.value)" style="width: 100%;" />
         </div>
 
         <!-- Time Slots -->

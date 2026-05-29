@@ -90,7 +90,6 @@ async function loadCoaches() {
   } catch (err) {
     COACHES = DEFAULT_COACHES.map(parseCoach);
   }
-  COACHES = DEFAULT_COACHES.map(parseCoach);
   document.getElementById('loadingMsg').style.display = 'none';
   renderCards();
   updateView();
@@ -109,7 +108,15 @@ function openModal(id) {
   const now = new Date();
   calYear  = now.getFullYear();
   calMonth = now.getMonth();
-  renderCalendar();
+
+  // Reset the date picker input and set min value to today's date in local time
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const dateInput = document.getElementById('bookingDate');
+  if (dateInput) {
+    dateInput.value = '';
+    dateInput.min = todayStr;
+  }
+
   document.getElementById('slotsContainer').innerHTML = '<p class="no-date-msg">← Please select a date first</p>';
   document.getElementById('bookingSummary').style.display = 'none';
   document.getElementById('bookingFlow').style.display = 'block';
@@ -117,6 +124,31 @@ function openModal(id) {
   document.getElementById('confirmScreen').classList.remove('show');
   document.getElementById('bookingForm').reset();
   document.getElementById('overlay').classList.add('open');
+}
+
+function onDateInputChange(val) {
+  if (!val) {
+    selectedDate = null;
+    selectedSlot = null;
+    document.getElementById('slotsContainer').innerHTML = '<p class="no-date-msg">← Please select a date first</p>';
+    document.getElementById('bookingSummary').style.display = 'none';
+    return;
+  }
+  const parts = val.split('-');
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) - 1;
+  const d = parseInt(parts[2], 10);
+  
+  const tempDate = new Date(y, m, d);
+  if (isBlocked(tempDate)) {
+    selectedDate = tempDate;
+    selectedSlot = null;
+    document.getElementById('slotsContainer').innerHTML = '<p class="no-date-msg">Coach is unavailable this day.</p>';
+    document.getElementById('bookingSummary').style.display = 'none';
+    return;
+  }
+  
+  selectDate(y, m, d);
 }
 
 function closeModal(e) {
@@ -151,36 +183,7 @@ function isBlocked(dt) {
 }
 
 function renderCalendar() {
-  document.getElementById('calMonth').textContent = `${MONTHS[calMonth]} ${calYear}`;
-  const grid = document.getElementById('calGrid');
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const firstDay = new Date(calYear, calMonth, 1).getDay();
-  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-
-  let html = DAYS.map(d => `<div class="cal-day-label">${d}</div>`).join('');
-  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dt = new Date(calYear, calMonth, d);
-    const dow = dt.getDay();
-    const isPast = dt < today;
-    const isBlk = !isPast && isBlocked(dt);
-    const hasSlots = currentCoach.schedule[dow]?.on && (currentCoach.schedule[dow]?.slots?.length > 0);
-    const isAvail = hasSlots && !isPast && !isBlk;
-    const isSel = selectedDate && dt.toDateString() === selectedDate.toDateString();
-    const isToday = dt.toDateString() === today.toDateString();
-    let cls = 'cal-day';
-    if (isPast || isBlk) cls += ' past';
-    else if (isSel) cls += ' selected';
-    else if (isAvail) cls += ' available';
-    if (isToday && !isSel) cls += ' today';
-    const click = isAvail ? `onclick="selectDate(${calYear},${calMonth},${d})"` : '';
-    const title = isBlk ? 'title="Coach unavailable this day"' : '';
-    html += `<div class="${cls}" ${click} ${title}>${d}</div>`;
-  }
-
-  grid.innerHTML = html;
+  // Custom calendar UI has been replaced by a native date input.
 }
 
 function selectDate(y, m, d) {
